@@ -1,9 +1,13 @@
 import { Component, OnInit, Input, EventEmitter, Output } from "@angular/core";
+import { EmployeeService } from "../employee.service";
+import { DaysService } from "../days.service";
+import { HttpClient } from "@angular/common/http";
+import { error } from "protractor";
 
 @Component({
   selector: "app-test",
   template: `
-    <div>
+    <div style="display: none;">
       <h3>Test component</h3>
       <p>Bienvenu {{ name }}</p>
       <p>{{ greetUser() }}</p>
@@ -23,6 +27,13 @@ import { Component, OnInit, Input, EventEmitter, Output } from "@angular/core";
       <h2>{{ "Hello " + parentData }}</h2>
       <button (click)="fireEvent()">Send event</button>
     </div>
+    <h2>Employee list</h2>
+    <h3>{{ errorMsg }}</h3>
+    <ul>
+      <li *ngFor="let item of employees">
+        {{ item.id }} - {{ item.name }} - age: {{ item.age }}
+      </li>
+    </ul>
   `,
   styles: [
     `
@@ -42,6 +53,9 @@ export class TestComponent implements OnInit {
   @Input() public parentData;
   @Output() public childEvent = new EventEmitter();
   public name;
+  public employees = [];
+  public errorMsg;
+  public days = [];
   public greet = "";
   public isDisabled = true;
   public myId = "testId";
@@ -52,9 +66,22 @@ export class TestComponent implements OnInit {
     "text-danger": this.hasError,
     "text-special": this.isSpecial
   };
-  constructor() {}
+  private http: HttpClient;
+  constructor(
+    private _employeeService: EmployeeService,
+    private _daysService: DaysService
+  ) {}
 
-  ngOnInit(): void {}
+  async ngOnInit() {
+    this._employeeService.getEmployees().subscribe(
+      data => (this.employees = data),
+      error => (this.errorMsg = error)
+    );
+    /*this._daysService.getDays().subscribe(data => {
+      this.days = data;
+      console.log("services: ", this.days); // it loads the data and print in console
+    });*/
+  }
 
   greetUser() {
     return "Bienvenue " + this.name;
